@@ -27,7 +27,7 @@ async function checkStores() {
     
     console.log(`📊 Знайдено магазинів: ${result.recordset.length}\n`);
     
-    result.recordset.forEach((store, index) => {
+    result.recordset.forEach((store: any, index: number) => {
       console.log(`${index + 1}. ${store.StoreName} (${store.StoreType})`);
       console.log(`   ID: ${store.StoreId}`);
       console.log(`   Адреса: ${store.Address}, ${store.City}, ${store.Region}`);

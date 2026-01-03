@@ -1,0 +1,6 @@
+tunnel: 4ebb7f85-6e21-4fd4-b2ca-c194d10dad66
+credentials-file: C:\Users\ZeuS\.cloudflared\4ebb7f85-6e21-4fd4-b2ca-c194d10dad66.json
+
+ingress:
+  # SQL HTTP Proxy - catch all traffic
+  - service: http://localhost:3002

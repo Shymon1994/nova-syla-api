@@ -312,7 +312,7 @@ router.get('/stores/nearby', async (req: Request, res: Response) => {
     sendSuccess(res, {
       location: { lat, lng },
       radius,
-      stores: result.recordset.map(store => ({
+      stores: result.recordset.map((store: any) => ({
         ...store,
         distance: Math.round(store.distance * 100) / 100 // округлення до 2 знаків
       }))

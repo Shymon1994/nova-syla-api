@@ -30,13 +30,18 @@ router.post('/login', async (req: Request<{}, {}, LoginRequest>, res: Response<L
     }
 
     // Підключення до БД
-    const pool = await getConnection();
+    const connection = await getConnection();
     
     // Виклик процедури zeus_GetCli
     // Процедура повертає поля: RECID, NAME, F7
-    const result = await pool
-      .request()
-      .query(`EXEC AZIT.dbo.zeus_GetCli '${cleanPhone}'`);
+    let result;
+    if (connection.request) {
+      // Direct MSSQL connection
+      result = await connection.request().query(`EXEC AZIT.dbo.zeus_GetCli '${cleanPhone}'`);
+    } else {
+      // SQL Proxy connection
+      result = await connection.query(`EXEC AZIT.dbo.zeus_GetCli '${cleanPhone}'`);
+    }
 
     // Обробка результату
     if (result.recordset && result.recordset.length > 0) {
