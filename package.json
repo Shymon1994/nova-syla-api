@@ -11,7 +11,7 @@
     "stop": "stop-server.bat",
     "dev": "ts-node-dev --respawn --transpile-only src/server.v2.ts",
     "dev:v1": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/sql-proxy-client.js', 'dist/sql-proxy-client.js')\"",
     "build:v2": "tsc src/server.v2.ts --outDir dist"
   },
   "keywords": [
