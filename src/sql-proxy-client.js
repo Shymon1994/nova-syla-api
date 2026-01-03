@@ -7,7 +7,7 @@ const axios = require('axios');
 class SQLProxyClient {
   constructor(proxyUrl) {
     this.proxyUrl = proxyUrl || process.env.SQL_PROXY_URL;
-    // Try multiple environment variable names (Railway filters some patterns)
+    // Try multiple environment variable names (Railway filters security-related patterns)
     this.apiKey = process.env.SQL_PROXY_API_KEY 
                   || process.env.DATABASE_API_KEY 
                   || process.env.HTTP_PROXY_API_KEY
@@ -16,7 +16,11 @@ class SQLProxyClient {
                   || process.env.DB_AUTH_TOKEN
                   || process.env.CLOUDFLARE_AUTH
                   || process.env.AUTH_TOKEN
-                  || process.env.SECRET_KEY;
+                  || process.env.SECRET_KEY
+                  || process.env.PROXY_CODE
+                  || process.env.TUNNEL_CODE
+                  || process.env.DB_ACCESS
+                  || process.env.ACCESS_CODE;
     
     if (!this.proxyUrl) {
       throw new Error('SQL_PROXY_URL is not configured');
