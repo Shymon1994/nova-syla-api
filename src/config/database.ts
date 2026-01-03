@@ -38,10 +38,11 @@ let proxyClient: any = null;
 
 export async function getConnection(): Promise<sql.ConnectionPool | any> {
   // Check if Proxy URL is configured (for Railway deployment)
-  // Try both names: HTTP_PROXY_URL (new) and SQL_PROXY_URL (old)
-  const PROXY_URL = process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
+  // Try multiple names in case Railway filters some
+  const PROXY_URL = process.env.DATABASE_PROXY_URL || process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
   
   console.log('🔍 Database connection check:');
+  console.log('   DATABASE_PROXY_URL:', process.env.DATABASE_PROXY_URL ? 'SET' : 'NOT SET');
   console.log('   HTTP_PROXY_URL:', process.env.HTTP_PROXY_URL ? 'SET' : 'NOT SET');
   console.log('   SQL_PROXY_URL:', process.env.SQL_PROXY_URL ? 'SET' : 'NOT SET');
   console.log('   Using:', PROXY_URL ? `${PROXY_URL}` : 'DIRECT MSSQL');
@@ -68,7 +69,7 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
 }
 
 export async function closeConnection(): Promise<void> {
-  const PROXY_URL = process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
+  const PROXY_URL = process.env.DATABASE_PROXY_URL || process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
   
   if (PROXY_URL && proxyClient) {
     await proxyClient.close();
