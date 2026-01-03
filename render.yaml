@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: nova-syla-api
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DB_SERVER
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        value: 1433
+      - key: BINOTEL_KEY
+        sync: false
+      - key: BINOTEL_SECRET
+        sync: false
+      - key: BINOTEL_COMPANY_ID
+        sync: false
+      - key: JWT_SECRET
+        sync: false

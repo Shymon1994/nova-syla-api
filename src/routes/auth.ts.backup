@@ -1,0 +1,139 @@
+import { Router, Request, Response } from 'express';
+import { getConnection } from '../config/database';
+import { LoginRequest, LoginResponse, ClientData } from '../types';
+
+const router = Router();
+
+// POST /api/auth/login
+router.post('/login', async (req: Request<{}, {}, LoginRequest>, res: Response<LoginResponse>) => {
+  console.log('📞 POST /api/auth/login - received');
+  console.log('   Body:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const { phone } = req.body;
+
+    // Валідація
+    if (!phone || typeof phone !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Номер телефону обов\'язковий',
+      });
+    }
+
+    // Перевірка формату
+    const cleanPhone = phone.trim();
+    if (!cleanPhone.startsWith('+380') || cleanPhone.length !== 13) {
+      return res.status(400).json({
+        success: false,
+        message: 'Невірний формат номера телефону',
+      });
+    }
+
+    // Підключення до БД
+    const pool = await getConnection();
+    
+    // Виклик процедури з правильною назвою параметра
+    const result = await pool
+      .request()
+      .input('PhoneNum', cleanPhone)
+      .execute('AZIT.dbo.zeus_GetCli');
+
+    // Обробка результату
+    if (result.recordset && result.recordset.length > 0) {
+      // Фільтруємо записи: беремо тільки з валідним RECID
+      const validRecords = result.recordset.filter((r: any) => r.RECID != null && r.F7 != null);
+      
+      if (validRecords.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: 'Клієнта з таким номером не знайдено',
+        });
+        return;
+      }
+      
+      // Вибираємо найкращий запис: без дужок у F7, або з найменшою довжиною
+      const bestRecord = validRecords.reduce((best: any, current: any) => {
+        const bestF7 = best.F7 || '';
+        const currentF7 = current.F7 || '';
+        
+        // Якщо поточний запис не має дужок, а найкращий має - беремо поточний
+        if (!currentF7.includes('(') && bestF7.includes('(')) {
+          return current;
+        }
+        
+        // Якщо обидва мають дужки або обидва без - беремо коротший
+        if (currentF7.length < bestF7.length && !currentF7.includes('(')) {
+          return current;
+        }
+        
+        return best;
+      });
+      
+      const record = bestRecord;
+      
+      // Отримуємо ім'я з різних можливих полів
+      let clientName = record.Name || record.ClientName || record.FullName || record.F7 || record.NAME;
+      
+      // Якщо в імені є "(Менеджер)" або інші дужки - видаляємо їх
+      if (clientName && typeof clientName === 'string') {
+        clientName = clientName.replace(/\s*\([^)]*\)\s*/g, '').trim();
+      }
+      
+      const clientData: ClientData = {
+        clientId: record.ClientID || record.Id || record.ID || record.RECID,
+        phone: cleanPhone,
+        name: clientName,
+        balance: record.Balance || record.BonusBalance || 0,
+        level: record.Level || record.ClientLevel || 'Бронза',
+        email: record.Email,
+        city: record.City || record.CityName,
+        registeredAt: record.RegisteredAt || record.CreatedAt,
+      };
+
+      res.json({
+        success: true,
+        message: 'Клієнта знайдено',
+        data: clientData,
+      });
+    } else {
+      // Клієнта не знайдено - можна автоматично створити або повернути помилку
+      res.status(404).json({
+        success: false,
+        message: 'Клієнта з таким номером не знайдено',
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка сервера',
+    });
+  }
+});
+
+// GET /api/auth/check/:phone - Перевірка існування клієнта
+router.get('/check/:phone', async (req: Request, res: Response) => {
+  try {
+    const { phone } = req.params;
+    const pool = await getConnection();
+    
+    const result = await pool
+      .request()
+      .input('PhoneNum', phone)
+      .execute('AZIT.dbo.zeus_GetCli');
+
+    res.json({
+      success: true,
+      exists: result.recordset && result.recordset.length > 0,
+    });
+  } catch (error: any) {
+    console.error('❌ Check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка сервера',
+      error: error.message,
+    });
+  }
+});
+
+export default router;
