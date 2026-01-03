@@ -1,7 +1,12 @@
 const http = require('http');
 const sql = require('mssql');
+const crypto = require('crypto');
 
 const PORT = 3002;
+
+// Security: API Key authentication
+const API_KEY = process.env.SQL_PROXY_API_KEY || 'CHANGE_THIS_SECRET_KEY_' + crypto.randomBytes(32).toString('hex');
+console.log('🔐 SQL Proxy API Key:', API_KEY);
 
 // SQL Server connection config
 const sqlConfig = {
@@ -25,15 +30,32 @@ const sqlConfig = {
 };
 
 const server = http.createServer(async (req, res) => {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS headers - restrict to Railway domain only
+  const allowedOrigins = [
+    'https://nova-syla-api-production.up.railway.app',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001'
+  ];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
+    return;
+  }
+
+  // Security: Check API Key
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== API_KEY) {
+    console.log('⛔ Unauthorized access attempt');
+    res.writeHead(401);
+    res.end(JSON.stringify({ error: 'Unauthorized - Invalid API Key' }));
     return;
   }
 
@@ -58,7 +80,26 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      console.log(`📊 Executing query: ${query}`);
+      // Security: Block dangerous SQL operations
+      const dangerousKeywords = [
+        /\bDROP\s+TABLE\b/i,
+        /\bDROP\s+DATABASE\b/i,
+        /\bTRUNCATE\b/i,
+        /\bEXEC\s*\(/i,
+        /\bEXECUTE\s*\(/i,
+        /xp_cmdshell/i,
+        /sp_executesql/i
+      ];
+      
+      const isDangerous = dangerousKeywords.some(pattern => pattern.test(query));
+      if (isDangerous) {
+        console.log('⛔ Blocked dangerous query:', query);
+        res.writeHead(403);
+        res.end(JSON.stringify({ error: 'Forbidden - Dangerous query blocked' }));
+        return;
+      }
+
+      console.log(`📊 Executing query: ${query.substring(0, 100)}...`);
       
       const pool = await sql.connect(sqlConfig);
       const request = pool.request();

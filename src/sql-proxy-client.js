@@ -7,8 +7,13 @@ const axios = require('axios');
 class SQLProxyClient {
   constructor(proxyUrl) {
     this.proxyUrl = proxyUrl || process.env.SQL_PROXY_URL;
+    this.apiKey = process.env.SQL_PROXY_API_KEY;
+    
     if (!this.proxyUrl) {
       throw new Error('SQL_PROXY_URL is not configured');
+    }
+    if (!this.apiKey) {
+      throw new Error('SQL_PROXY_API_KEY is not configured');
     }
     console.log(`📡 Using SQL Proxy at: ${this.proxyUrl}`);
   }
@@ -19,7 +24,8 @@ class SQLProxyClient {
         query: sqlQuery
       }, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-API-Key': this.apiKey
         },
         timeout: 30000
       });
