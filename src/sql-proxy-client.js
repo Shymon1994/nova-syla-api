@@ -7,15 +7,22 @@ const axios = require('axios');
 class SQLProxyClient {
   constructor(proxyUrl) {
     this.proxyUrl = proxyUrl || process.env.SQL_PROXY_URL;
-    this.apiKey = process.env.SQL_PROXY_API_KEY;
+    // Try multiple environment variable names (Railway may filter SQL_PROXY_*)
+    this.apiKey = process.env.SQL_PROXY_API_KEY 
+                  || process.env.DATABASE_API_KEY 
+                  || process.env.HTTP_PROXY_API_KEY
+                  || process.env.TUNNEL_API_KEY;
     
     if (!this.proxyUrl) {
       throw new Error('SQL_PROXY_URL is not configured');
     }
     if (!this.apiKey) {
-      throw new Error('SQL_PROXY_API_KEY is not configured');
+      console.error('❌ API Key not found in any of: SQL_PROXY_API_KEY, DATABASE_API_KEY, HTTP_PROXY_API_KEY, TUNNEL_API_KEY');
+      console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY')));
+      throw new Error('API Key is not configured - check Railway Variables');
     }
     console.log(`📡 Using SQL Proxy at: ${this.proxyUrl}`);
+    console.log(`🔑 API Key found (length: ${this.apiKey.length})`);
   }
 
   async query(sqlQuery) {
