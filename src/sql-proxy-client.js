@@ -14,13 +14,15 @@ class SQLProxyClient {
                   || process.env.TUNNEL_API_KEY
                   || process.env.PROXY_AUTH_TOKEN
                   || process.env.DB_AUTH_TOKEN
-                  || process.env.CLOUDFLARE_AUTH;
+                  || process.env.CLOUDFLARE_AUTH
+                  || process.env.AUTH_TOKEN
+                  || process.env.SECRET_KEY;
     
     if (!this.proxyUrl) {
       throw new Error('SQL_PROXY_URL is not configured');
     }
     if (!this.apiKey) {
-      console.error('❌ API Key not found in any of: SQL_PROXY_API_KEY, DATABASE_API_KEY, HTTP_PROXY_API_KEY, TUNNEL_API_KEY, PROXY_AUTH_TOKEN, DB_AUTH_TOKEN, CLOUDFLARE_AUTH');
+      console.error('❌ API Key not found in any of: SQL_PROXY_API_KEY, DATABASE_API_KEY, HTTP_PROXY_API_KEY, TUNNEL_API_KEY, PROXY_AUTH_TOKEN, DB_AUTH_TOKEN, CLOUDFLARE_AUTH, AUTH_TOKEN, SECRET_KEY');
       console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY')));
       throw new Error('API Key is not configured - check Railway Variables');
     }
