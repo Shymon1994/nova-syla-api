@@ -1,0 +1,35 @@
+✅ CHECKLIST ДЕПЛОЮ НА RAILWAY
+
+□ 1. Відкрито https://railway.app/new
+□ 2. Натиснуто "Deploy from GitHub repo"
+□ 3. Обрано репозиторій: Shymon1994/nova-syla-api
+□ 4. Railway почав деплой (автоматично)
+
+ЗМІННІ ОТОЧЕННЯ (додати в Variables):
+□ NODE_ENV=production
+□ PORT=3001
+□ DB_SERVER=10.131.10.25
+□ DB_DATABASE=AZIT
+□ DB_USER=zeus
+□ DB_PASSWORD=zeus
+□ DB_PORT=1433
+□ BINOTEL_KEY=035963-ac29f32
+□ BINOTEL_SECRET=b3aa55-bf46d3-b0e6a6-99dc8a-8f8a984c
+□ BINOTEL_COMPANY_ID=57612
+□ JWT_SECRET=nova_syla_loyalty_secret_key_2024
+
+ПІСЛЯ ДЕПЛОЮ:
+□ Settings → Networking → Generate Domain
+□ Скопіювати URL (наприклад: nova-syla-api-production.up.railway.app)
+□ Перевірити: https://YOUR-URL/health
+
+ОНОВЛЕННЯ FLUTTER:
+□ Відредагувати lib/config/api_config.dart
+□ Змінити baseUrl на Railway URL
+□ flutter build web --release
+□ surge build/web nova-syla-loyalty.surge.sh
+
+⚠️ ВАЖЛИВО: 
+База даних 10.131.10.25 - локальна адреса!
+Railway НЕ ЗМОЖЕ підключитись до неї.
+Потрібна хмарна БД або VPN тунель.
