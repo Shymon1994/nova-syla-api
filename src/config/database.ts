@@ -85,6 +85,15 @@ export async function closeConnection(): Promise<void> {
 // Helper function for executing queries
 export async function query(queryText: string, params?: any): Promise<sql.IResult<any>> {
   const connection = await getConnection();
+  
+  // Check if this is a SQL Proxy connection (no request method)
+  if (!connection.request) {
+    // SQL Proxy - execute directly
+    const result = await connection.query(queryText);
+    return result;
+  }
+  
+  // Direct MSSQL connection
   const request = connection.request();
   
   // Add parameters if provided
