@@ -4,7 +4,8 @@
   "description": "Nova Syla Loyalty API Server",
   "main": "dist/server.v2.js",
   "scripts": {
-    "start": "node dist/server.v2.js",
+    "start": "node railway-start.js",
+    "start:direct": "node dist/server.v2.js",
     "start:v1": "node dist/server.js",
     "start:dev": "npm run build && start-server.bat",
     "stop": "stop-server.bat",
