@@ -44,6 +44,7 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
   console.log('   SQL_PROXY_URL:', SQL_PROXY_URL ? `SET (${SQL_PROXY_URL})` : 'NOT SET');
   console.log('   DB_SERVER:', process.env.DB_SERVER || config.server);
   console.log('   SQLProxyClient available:', !!SQLProxyClient);
+  console.log('   All env vars containing "SQL":', Object.keys(process.env).filter(k => k.includes('SQL')));
   
   // If SQL_PROXY_URL is set, use HTTP proxy instead of direct connection
   if (SQL_PROXY_URL && SQLProxyClient) {
