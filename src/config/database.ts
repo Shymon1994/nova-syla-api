@@ -1,9 +1,18 @@
 import sql from 'mssql';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
-const SQLProxyClient = require('../sql-proxy-client');
+// Динамічний import SQL Proxy Client
+let SQLProxyClient: any;
+try {
+  SQLProxyClient = require(path.join(__dirname, '..', 'sql-proxy-client'));
+  console.log('✅ SQL Proxy Client loaded successfully');
+} catch (e) {
+  console.warn('⚠️  SQL Proxy Client not found. Will use direct MSSQL only.');
+  console.warn('   Error:', (e as Error).message);
+}
 
 const config: sql.config = {
   server: process.env.DB_SERVER || '10.131.10.25',
@@ -32,11 +41,12 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
   const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
   
   console.log('🔍 Database connection check:');
-  console.log('   SQL_PROXY_URL:', SQL_PROXY_URL ? 'SET' : 'NOT SET');
-  console.log('   DB_SERVER:', process.env.DB_SERVER);
+  console.log('   SQL_PROXY_URL:', SQL_PROXY_URL ? `SET (${SQL_PROXY_URL})` : 'NOT SET');
+  console.log('   DB_SERVER:', process.env.DB_SERVER || config.server);
+  console.log('   SQLProxyClient available:', !!SQLProxyClient);
   
   // If SQL_PROXY_URL is set, use HTTP proxy instead of direct connection
-  if (SQL_PROXY_URL) {
+  if (SQL_PROXY_URL && SQLProxyClient) {
     if (!proxyClient) {
       console.log('🌐 Using SQL HTTP Proxy for database access');
       proxyClient = new SQLProxyClient(SQL_PROXY_URL);

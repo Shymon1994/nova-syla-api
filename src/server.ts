@@ -133,4 +133,6 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📚 API docs: http://localhost:${PORT}/`);
+  console.log(`🔌 SQL_PROXY_URL: ${process.env.SQL_PROXY_URL ? 'SET (' + process.env.SQL_PROXY_URL + ')' : 'NOT SET'}`);
+  console.log(`🗄️ DB_SERVER: ${process.env.DB_SERVER || 'NOT SET'}`);
 });
