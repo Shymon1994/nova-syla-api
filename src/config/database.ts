@@ -88,8 +88,20 @@ export async function query(queryText: string, params?: any): Promise<sql.IResul
   
   // Check if this is a SQL Proxy connection (no request method)
   if (!connection.request) {
-    // SQL Proxy - execute directly
-    const result = await connection.query(queryText);
+    // SQL Proxy - replace parameters in query string
+    let finalQuery = queryText;
+    if (params) {
+      Object.keys(params).forEach((key) => {
+        const value = params[key];
+        // Escape single quotes and wrap strings in quotes
+        const escapedValue = typeof value === 'string' 
+          ? `'${value.replace(/'/g, "''")}'` 
+          : value;
+        // Replace @param with actual value
+        finalQuery = finalQuery.replace(new RegExp(`@${key}`, 'g'), escapedValue);
+      });
+    }
+    const result = await connection.query(finalQuery);
     return result;
   }
   
