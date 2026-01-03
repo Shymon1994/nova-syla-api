@@ -1,11 +1,9 @@
 import sql from 'mssql';
 import dotenv from 'dotenv';
-const SQLProxyClient = require('../sql-proxy-client');
 
 dotenv.config();
 
-// Check if SQL Proxy URL is configured (for Railway deployment)
-const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
+const SQLProxyClient = require('../sql-proxy-client');
 
 const config: sql.config = {
   server: process.env.DB_SERVER || '10.131.10.25',
@@ -30,6 +28,13 @@ let pool: sql.ConnectionPool | null = null;
 let proxyClient: any = null;
 
 export async function getConnection(): Promise<sql.ConnectionPool | any> {
+  // Check if SQL Proxy URL is configured (for Railway deployment)
+  const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
+  
+  console.log('🔍 Database connection check:');
+  console.log('   SQL_PROXY_URL:', SQL_PROXY_URL ? 'SET' : 'NOT SET');
+  console.log('   DB_SERVER:', process.env.DB_SERVER);
+  
   // If SQL_PROXY_URL is set, use HTTP proxy instead of direct connection
   if (SQL_PROXY_URL) {
     if (!proxyClient) {
@@ -41,6 +46,7 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
   }
 
   // Otherwise use direct MSSQL connection
+  console.log('📡 Using direct MSSQL connection');
   if (!pool) {
     pool = await sql.connect(config);
     console.log('✅ Connected to SQL Server');
@@ -49,6 +55,8 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
 }
 
 export async function closeConnection(): Promise<void> {
+  const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
+  
   if (SQL_PROXY_URL && proxyClient) {
     await proxyClient.close();
     proxyClient = null;
