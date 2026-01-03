@@ -37,20 +37,22 @@ let pool: sql.ConnectionPool | null = null;
 let proxyClient: any = null;
 
 export async function getConnection(): Promise<sql.ConnectionPool | any> {
-  // Check if SQL Proxy URL is configured (for Railway deployment)
-  const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
+  // Check if Proxy URL is configured (for Railway deployment)
+  // Try both names: HTTP_PROXY_URL (new) and SQL_PROXY_URL (old)
+  const PROXY_URL = process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
   
   console.log('🔍 Database connection check:');
-  console.log('   SQL_PROXY_URL:', SQL_PROXY_URL ? `SET (${SQL_PROXY_URL})` : 'NOT SET');
+  console.log('   HTTP_PROXY_URL:', process.env.HTTP_PROXY_URL ? 'SET' : 'NOT SET');
+  console.log('   SQL_PROXY_URL:', process.env.SQL_PROXY_URL ? 'SET' : 'NOT SET');
+  console.log('   Using:', PROXY_URL ? `${PROXY_URL}` : 'DIRECT MSSQL');
   console.log('   DB_SERVER:', process.env.DB_SERVER || config.server);
   console.log('   SQLProxyClient available:', !!SQLProxyClient);
-  console.log('   All env vars containing "SQL":', Object.keys(process.env).filter(k => k.includes('SQL')));
   
-  // If SQL_PROXY_URL is set, use HTTP proxy instead of direct connection
-  if (SQL_PROXY_URL && SQLProxyClient) {
+  // If proxy URL is set, use HTTP proxy instead of direct connection
+  if (PROXY_URL && SQLProxyClient) {
     if (!proxyClient) {
       console.log('🌐 Using SQL HTTP Proxy for database access');
-      proxyClient = new SQLProxyClient(SQL_PROXY_URL);
+      proxyClient = new SQLProxyClient(PROXY_URL);
       await proxyClient.connect();
     }
     return proxyClient;
@@ -66,9 +68,9 @@ export async function getConnection(): Promise<sql.ConnectionPool | any> {
 }
 
 export async function closeConnection(): Promise<void> {
-  const SQL_PROXY_URL = process.env.SQL_PROXY_URL;
+  const PROXY_URL = process.env.HTTP_PROXY_URL || process.env.SQL_PROXY_URL;
   
-  if (SQL_PROXY_URL && proxyClient) {
+  if (PROXY_URL && proxyClient) {
     await proxyClient.close();
     proxyClient = null;
     console.log('🔌 Disconnected from SQL Proxy');
