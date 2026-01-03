@@ -1,6 +1,6 @@
 import sql from 'mssql';
 import dotenv from 'dotenv';
-const SQLProxyClient = require('./sql-proxy-client');
+const SQLProxyClient = require('../sql-proxy-client');
 
 dotenv.config();
 
