@@ -219,7 +219,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 
     // Кількість магазинів
     const storesResult = await pool.request()
-      .query('SELECT COUNT(*) as totalStores FROM Stores WHERE IsActive = 1');
+      .query('SELECT COUNT(*) as totalStores FROM AZIT.dbo.Stores WHERE IsActive = 1');
 
     sendSuccess(res, {
       users: usersResult.recordset[0].total || 0,
@@ -251,7 +251,7 @@ router.get('/stores/city/:city', async (req: Request, res: Response) => {
         WorkingHours,
         Latitude,
         Longitude
-      FROM Stores 
+      FROM AZIT.dbo.Stores 
       WHERE IsActive = 1 
         AND City LIKE @city
       ORDER BY StoreName`);
@@ -302,7 +302,7 @@ router.get('/stores/nearby', async (req: Request, res: Response) => {
             SIN(RADIANS(Latitude))
           )
         ) AS distance
-      FROM Stores 
+      FROM AZIT.dbo.Stores 
       WHERE IsActive = 1
         AND Latitude IS NOT NULL
         AND Longitude IS NOT NULL
