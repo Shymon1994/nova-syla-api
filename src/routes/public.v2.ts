@@ -57,14 +57,14 @@ router.get('/stores', async (req: Request, res: Response) => {
         WorkingHours,
         Latitude,
         Longitude
-      FROM Stores 
+      FROM AZIT.dbo.Stores 
       WHERE IsActive = 1
       ORDER BY City, StoreName
       OFFSET @offset ROWS
       FETCH NEXT @limit ROWS ONLY`);
 
     const countResult = await pool.request()
-      .query('SELECT COUNT(*) as total FROM Stores WHERE IsActive = 1');
+      .query('SELECT COUNT(*) as total FROM AZIT.dbo.Stores WHERE IsActive = 1');
 
     const total = countResult.recordset[0].total;
 
