@@ -18,7 +18,10 @@ const sqlConfig = {
   options: {
     encrypt: false,
     trustServerCertificate: true,
-    enableArithAbort: true
+    enableArithAbort: true,
+    useUTC: false,
+    // Fix UTF-8 encoding for Cyrillic text
+    charset: 'UTF8'
   },
   pool: {
     max: 10,
